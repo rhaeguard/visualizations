@@ -13,7 +13,7 @@
 ![](./julia_sets/julia_2.png)
 ![](./julia_sets/julia_3.png)
 
-### Times Table
+### [Times Table](./times_table/)
 
 Some examples:
 
