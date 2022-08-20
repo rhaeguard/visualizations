@@ -12,3 +12,23 @@
 ![](./julia_sets/julia_1.png)
 ![](./julia_sets/julia_2.png)
 ![](./julia_sets/julia_3.png)
+
+### Times Table
+
+Some examples:
+
+(till=180, times=6)
+
+![](./times_table/180_6.png)
+
+(till=180, times=62)
+
+![](./times_table/180_62.png)
+
+(till=180, times=81)
+
+![](./times_table/180_81.png)
+
+(till=90, times=106)
+
+![](./times_table/90_106.png)
