@@ -32,3 +32,5 @@ Some examples:
 (till=90, times=106)
 
 ![](./times_table/90_106.png)
+
+### [Diastic Machine](./diastic_machine/)
