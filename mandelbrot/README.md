@@ -1,0 +1,1 @@
+![](./mandelbrot_1.png)
