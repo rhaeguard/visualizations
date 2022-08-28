@@ -6,3 +6,4 @@
 ### [Times Table](./times_table/)
 ### [Diastic Machine](./diastic_machine/)
 ### [Sorting visualizations](./sorting_visualization/)
+### [Ulam spiral](./ulam_spiral/)
