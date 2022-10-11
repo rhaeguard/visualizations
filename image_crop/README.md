@@ -1,0 +1,1 @@
+# Basic image cropping using JavaScript canvas
