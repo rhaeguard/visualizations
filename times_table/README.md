@@ -1,17 +1,15 @@
-## Some examples:
+## Times Table Visualization:
 
-(till=180, times=6)
+<p align="middle">
+  <img src="./180_6.png" width="350" alt="(till=180, times=6)"/>
+  <img src="./180_62.png" width="350" alt="(till=180, times=62)"/>
+</p>
 
-![](./180_6.png)
+<p align="middle">
+  <img src="./180_81.png" width="350" alt="(till=180, times=81)"/>
+  <img src="./90_106.png" width="350" alt="(till=90, times=106)"/>
+</p>
 
-(till=180, times=62)
+## Reference:
 
-![](./180_62.png)
-
-(till=180, times=81)
-
-![](./180_81.png)
-
-(till=90, times=106)
-
-![](./90_106.png)
+- [Times Tables, Mandelbrot and the Heart of Mathematics](https://www.youtube.com/watch?v=qhbuKbxJsk8)

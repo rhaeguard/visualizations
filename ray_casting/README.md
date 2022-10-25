@@ -1,5 +1,9 @@
 # Ray Casting
 
+Example:
+
+![](./rc.gif)
+
 ## References:
  - https://ncase.me/sight-and-light/
  - https://www.redblobgames.com/articles/visibility/#playground

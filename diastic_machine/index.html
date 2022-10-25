@@ -15,7 +15,7 @@
         <style>
             .container {
                 display: flex;
-                flex-direction: row;
+                flex-direction: column;
                 justify-content: center;
                 align-items: center;
                 min-height: 100vh;
@@ -30,10 +30,22 @@
                 font-family: "Cormorant Garamond", serif;
                 font-size: 2em;
             }
+
+            input[type=text] {
+                width: 50vw;
+                margin-bottom: 2em;
+                border: none;
+                outline: none;
+                border-bottom: 1px solid black;
+                font-size: x-large;
+                padding: 1%;
+                text-align: center;
+            }
         </style>
     </head>
     <body>
         <div class="container">
+            <input type="text" id="textInput" placeholder="jot down something...">
             <div id="poem"></div>
         </div>
 

@@ -1,9 +1,6 @@
-// Reference: https://www.chegg.com/homework-help/questions-and-answers/diastic-machine-poetry-algorithm-create-jacskon-max-big-picture-file-text-story-something--q37755137
 function getWords(v) {
     return v.replace(/[^A-Za-z0-9-']/gi, ' ').split(" ")
 }
-
-var allSeed = "projects makers stuff without relying on zig";
 
 const words = getWords(text);
 
@@ -30,4 +27,13 @@ function appendLine(line) {
     div.appendChild(p);
 }
 
-allSeed.split(" ").map(genLine).forEach(x => appendLine(x))
+function generatePoem(seed) {
+    if (seed.trim().length === 0) return;
+
+    document.getElementById("poem").innerHTML = "";
+    seed.split(" ").map(genLine).forEach(x => appendLine(x))
+}
+
+document.getElementById("textInput").addEventListener('keydown', function (e) {
+    generatePoem(e.target.value);
+})

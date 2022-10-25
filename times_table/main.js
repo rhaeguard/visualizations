@@ -1,4 +1,3 @@
-// Reference: https://www.youtube.com/watch?v=qhbuKbxJsk8
 function drawTimesTable(N, times) {
     const WIDTH = 800;
 
