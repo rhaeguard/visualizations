@@ -51,7 +51,7 @@ function getAllLines() {
 
                 const lTop = { line: line(x, y, x + STEP, y), color };
                 const lBottom = { line: line(x, y + STEP, x + STEP, y + STEP), color };
-                const lLeft = { line: line(x, y, x, y + STEP), color, isLeft: true };
+                const lLeft = { line: line(x, y, x, y + STEP), color };
                 const lRight = { line: line(x + STEP, y, x + STEP, y + STEP), color };
 
                 allLines.push(lTop);
@@ -103,8 +103,7 @@ function drawMiniMap() {
                     let result = intersects(target.line, line)
                     return {
                         intersection: result,
-                        color: target.color,
-                        isLeft: target.isLeft
+                        color: target.color
                     }
                 })
                 .filter(result => result.intersection !== null)
@@ -144,11 +143,14 @@ function updateWorldView(HIT_BOX) {
     let vFrame = 0; // vertical frame
 
     for (let line of HIT_BOX) {
-        const { intersection, color, distance, isLeft } = line;
+        const { intersection, color, distance } = line;
         const height = (HEIGHT / distance) * 40;
         let x = vFrame * STEP;
         let y = (HEIGHT - height) / 2;
-        ctx.fillStyle = isLeft ? "red" : "darkred"// color;
+        
+        let red = Math.max(255 - Math.min(distance, 255), 30);
+
+        ctx.fillStyle = `rgb(${red}, 11, 11)` // isLeft ? "red" : "darkred"// color;
         ctx.fillRect(x, y, STEP, height);
         vFrame++;
     }
@@ -166,15 +168,20 @@ function nextPoint(p0, p1, t) {
 document.addEventListener('keydown', (ev) => {
     const key = ev.key;
     if (key === "ArrowRight") {
-        PLAYER.rotationAngle += 0.05
+        PLAYER.rotationAngle += 0.05;
     } else if (key === "ArrowLeft") {
-        PLAYER.rotationAngle -= 0.05
+        PLAYER.rotationAngle -= 0.05;
     } else if (key === "ArrowUp" || key === "ArrowDown") {
         const forwardLine = getLineByAngle(PLAYER.x, PLAYER.y, PLAYER.rotationAngle, WIDTH * 2);
         const t = key === "ArrowUp" ? 0.0005 : -0.0005;
         const {x, y} = nextPoint(forwardLine.p1, forwardLine.p2, t);
-        PLAYER.x = x;
-        PLAYER.y = y;
+
+        const blockX = Math.floor(x / 50);
+        const blockY = Math.floor(y / 50);
+        if (GAME_WORLD[blockY][blockX] === 0) {
+            PLAYER.x = x;
+            PLAYER.y = y;
+        }
     }
 
     if (key.startsWith("Arrow")) {
