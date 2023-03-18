@@ -1,6 +1,6 @@
-# visualizations
+# Visualizations
 
-In this repository, I simply put all the fun visualization projects I have done with the JavaScript Canvas API (mostly). Check out each project below to see the results!
+In this repository, I simply put all the fun visualization projects I have done with the JavaScript Canvas API (mostly). Check out each project below to see the results, or alternatively try them online: https://visualizations-one.vercel.app
 
 ## Table of contents
 
@@ -14,3 +14,4 @@ In this repository, I simply put all the fun visualization projects I have done 
 - [game of life](./game_of_life/)
 - [image cropping](./image_crop/)
 - [ray casting](./ray_casting/)
+- [ray casting 3d](./ray_casting_3d/)
