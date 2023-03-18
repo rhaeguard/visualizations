@@ -174,37 +174,16 @@ document.addEventListener('keyup', ({key}) => {
     PLAYER.keys[key] = !(key && key.startsWith("Arrow"));
 });
 
-document.addEventListener('keydown', (ev) => {
-    const key = ev.key;
-    if (key === "ArrowRight") {
-        PLAYER.rotationAngle += 0.05;
-    } else if (key === "ArrowLeft") {
-        PLAYER.rotationAngle -= 0.05;
-    } else if (key === "ArrowUp" || key === "ArrowDown") {
-        const forwardLine = getLineByAngle(PLAYER.x, PLAYER.y, PLAYER.rotationAngle, WIDTH * 2);
-        const t = key === "ArrowUp" ? 0.0005 : -0.0005;
-        const {x, y} = nextPoint(forwardLine.p1, forwardLine.p2, t);
-
-        const blockX = Math.floor(x / 50);
-        const blockY = Math.floor(y / 50);
-        if (GAME_WORLD[blockY][blockX] === 0) {
-            PLAYER.x = x;
-            PLAYER.y = y;
-        }
-    }
-
-    // if (key.startsWith("Arrow")) {
-    //     const HIT_BOX = drawMiniMap()
-    //     updateWorldView(HIT_BOX);
-    // }
-});
-
 function updateAndRender(time) {
     if (PLAYER.keys["ArrowRight"]) {
         PLAYER.rotationAngle += 0.005;
-    } else if (PLAYER.keys["ArrowLeft"]) {
+    }
+    
+    if (PLAYER.keys["ArrowLeft"]) {
         PLAYER.rotationAngle -= 0.005;
-    } else if (PLAYER.keys["ArrowUp"] || PLAYER.keys["ArrowDown"]) {
+    } 
+    
+    if (PLAYER.keys["ArrowUp"] || PLAYER.keys["ArrowDown"]) {
         const forwardLine = getLineByAngle(PLAYER.x, PLAYER.y, PLAYER.rotationAngle, WIDTH * 2);
         const t = PLAYER.keys["ArrowUp"] ? 0.00005 : -0.00005;
         const {x, y} = nextPoint(forwardLine.p1, forwardLine.p2, t);
