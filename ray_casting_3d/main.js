@@ -1,4 +1,4 @@
-const VERTICAL_LINES = 120;
+const VERTICAL_LINES = 510;
 
 const HEIGHT = 573.75;
 const WIDTH = 1020;
@@ -51,7 +51,7 @@ function getAllLines() {
 
                 const lTop = { line: line(x, y, x + STEP, y), color };
                 const lBottom = { line: line(x, y + STEP, x + STEP, y + STEP), color };
-                const lLeft = { line: line(x, y, x, y + STEP), color };
+                const lLeft = { line: line(x, y, x, y + STEP), color, isLeft: true };
                 const lRight = { line: line(x + STEP, y, x + STEP, y + STEP), color };
 
                 allLines.push(lTop);
@@ -93,7 +93,7 @@ function drawMiniMap() {
 
     function drawRays() {
         const HIT_BOX = [];
-        const step = Math.PI / 360;
+        const step = PLAYER.fixedAngle / VERTICAL_LINES; // Math.PI / 360;
         for (let radian = -PLAYER.fixedAngle / 2; radian < PLAYER.fixedAngle / 2; radian += step) {
             const radianRotated = radian + PLAYER.rotationAngle;
             const line = getLineByAngle(PLAYER.x, PLAYER.y, radianRotated, WIDTH);
@@ -103,7 +103,8 @@ function drawMiniMap() {
                     let result = intersects(target.line, line)
                     return {
                         intersection: result,
-                        color: target.color
+                        color: target.color,
+                        isLeft: target.isLeft
                     }
                 })
                 .filter(result => result.intersection !== null)
@@ -136,16 +137,18 @@ function drawMiniMap() {
 function updateWorldView(HIT_BOX) {
     const ctx = worldCanvas.getContext("2d");
     ctx.fillStyle = "grey";
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    ctx.fillRect(0, 0, WIDTH, HEIGHT / 2);
+    ctx.fillStyle = "lightgrey";
+    ctx.fillRect(0, HEIGHT / 2, WIDTH, HEIGHT / 2);
 
     let vFrame = 0; // vertical frame
 
     for (let line of HIT_BOX) {
-        const { intersection, color, distance } = line;
+        const { intersection, color, distance, isLeft } = line;
         const height = (HEIGHT / distance) * 40;
         let x = vFrame * STEP;
         let y = (HEIGHT - height) / 2;
-        ctx.fillStyle = color;
+        ctx.fillStyle = isLeft ? "red" : "darkred"// color;
         ctx.fillRect(x, y, STEP, height);
         vFrame++;
     }
