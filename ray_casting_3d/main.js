@@ -27,7 +27,7 @@ const GAME_WORLD = [
     [1, 1, 1, 1, 1, 1, 1, 1],
 ];
 
-const ALL_LINES = getAllLines(); // will be populated during the drawing
+const ALL_LINES = getAllLines();
 
 const PLAYER = {
     x: 100,
@@ -41,6 +41,7 @@ function getAllLines() {
     const STEP = 50;
 
     const allLines = [];
+    const seen = new Set();
     for (let i = 0; i < GAME_WORLD.length; i++) {
         for (let j = 0; j < GAME_WORLD.length; j++) {
             const cell = GAME_WORLD[i][j];
@@ -55,10 +56,14 @@ function getAllLines() {
                 const lLeft = { line: line(x, y, x, y + STEP), color };
                 const lRight = { line: line(x + STEP, y, x + STEP, y + STEP), color };
 
-                allLines.push(lTop);
-                allLines.push(lBottom);
-                allLines.push(lLeft);
-                allLines.push(lRight);
+                for (let line of [lTop, lBottom, lLeft, lRight]) {
+                    const s = JSON.stringify(line);
+                    if (!seen.has(s)) {
+                        allLines.push(line);
+                        seen.add(s);
+                    }
+                }
+                
             }
         }
     }
@@ -94,7 +99,7 @@ function drawMiniMap() {
 
     function drawRays() {
         const HIT_BOX = [];
-        const step = PLAYER.fixedAngle / VERTICAL_LINES; // Math.PI / 360;
+        const step = PLAYER.fixedAngle / VERTICAL_LINES;
         for (let radian = -PLAYER.fixedAngle / 2; radian < PLAYER.fixedAngle / 2; radian += step) {
             const radianRotated = radian + PLAYER.rotationAngle;
             const line = getLineByAngle(PLAYER.x, PLAYER.y, radianRotated, WIDTH);
@@ -136,24 +141,23 @@ function drawMiniMap() {
 
 function updateWorldView(HIT_BOX) {
     const ctx = worldCanvas.getContext("2d");
-    ctx.fillStyle = "grey";
+    ctx.fillStyle = "grey"; // sky
     ctx.fillRect(0, 0, WIDTH, HEIGHT / 2);
-    ctx.fillStyle = "lightgrey";
+    ctx.fillStyle = "lightgrey"; // ground
     ctx.fillRect(0, HEIGHT / 2, WIDTH, HEIGHT / 2);
 
-    let vFrame = 0; // vertical frame
+    let verticalStripe = 0;
 
-    for (let line of HIT_BOX) {
-        const { intersection, color, distance } = line;
+    for (let { distance } of HIT_BOX) {
         const height = (HEIGHT / distance) * 40;
-        let x = vFrame * STEP;
+        let x = verticalStripe * STEP;
         let y = (HEIGHT - height) / 2;
         
         let red = Math.max(255 - Math.min(distance, 255), 30);
 
-        ctx.fillStyle = `rgb(${red}, 11, 11)` // isLeft ? "red" : "darkred"// color;
+        ctx.fillStyle = `rgb(${red}, 11, 11)`;
         ctx.fillRect(x, y, STEP, height);
-        vFrame++;
+        verticalStripe++;
     }
 }
 
