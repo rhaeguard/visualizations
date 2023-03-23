@@ -18,12 +18,12 @@ const CELL_TO_COLOR = [
 
 const GAME_WORLD = [
     [1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 3, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 2, 0, 4, 4, 0, 1],
-    [1, 0, 0, 0, 4, 0, 0, 1],
-    [1, 0, 3, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 1, 1, 1, 1],
+    [1, 1, 0, 0, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1],
 ];
 
@@ -31,7 +31,7 @@ const ALL_LINES = getAllLines();
 
 const PLAYER = {
     x: 100,
-    y: 100,
+    y: 200,
     rotationAngle: 20,
     fixedAngle: Math.PI / 3,
     keys: {}
@@ -123,16 +123,19 @@ function drawMiniMap() {
             arr.sort((a, b) => a.distance - b.distance);
 
             const closest = arr[0].intersection;
+            arr[0].distance *= Math.cos(radian);
 
             HIT_BOX.push(arr[0]);
 
             ctx.beginPath();
             ctx.moveTo(PLAYER.x, PLAYER.y);
             ctx.lineTo(closest.x, closest.y);
-            ctx.strokeStyle = "yellow";
+            ctx.strokeStyle = "rgba(255,255,224, 0.5)";
             ctx.stroke();
         }
-
+        // simply an array
+        // where items are ordered in the way the rays progress from one border to the other
+        // each item has {intersection, color, distance}
         return HIT_BOX;
     }
 
