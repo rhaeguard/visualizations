@@ -9,6 +9,20 @@
 <body>
     <canvas id="canvas"></canvas>
 
+    <hr>
+
+    <label for="avoid_factor">Avoid Factor: <input type="number" min="0" max="1" step="0.01" value="0.05" id="avoid_factor"></label>
+    <label for="matching_factor">Matching Factor: <input type="number" min="0" max="1" step="0.01" value="0.05" id="matching_factor"></label>
+    <label for="centering_factor">Centering Factor: <input type="number" min="0" max="0.05" step="0.0001" value="0.0005" id="centering_factor"></label>
+    
+    <hr>
+    
+    <label for="centering_factor">Total boids: <input type="number" value="100" id="total_boids"></label>
+
+    <script src="utils.js"></script>
+    <script src="parameters.js"></script>
+    <script src="vectors.js"></script>
+    <script src="boid.js"></script>
     <script src="main.js"></script>
 </body>
 </html>

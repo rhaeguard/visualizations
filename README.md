@@ -15,3 +15,4 @@ In this repository, I simply put all the fun visualization projects I have done 
 - [image cropping](./image_crop/)
 - [ray casting](./ray_casting/)
 - [ray casting 3d](./ray_casting_3d/)
+- [boids](./boids/)
