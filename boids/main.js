@@ -36,6 +36,40 @@ function multVector(v, scalar) {
     }
 }
 
+const Vectors = {
+    create: function() {
+        return {
+            x: 0,
+            y: 0
+        }
+    },
+    add: function (v1, v2) {
+        return {
+            x: v1.x + v2.x,
+            y: v1.y + v2.y
+        }
+    },
+    sub: function (v1, v2) {
+        return {
+            x: v1.x - v2.x,
+            y: v1.y - v2.y
+        }
+    },
+    multByScalar: function (v, scalar) {
+        return {
+            x: v.x * scalar,
+            y: v.y * scalar
+        }
+    },
+    divByScalar: function (v, scalar) {
+        if (scalar === 0) return;
+        return {
+            x: v.x /= scalar,
+            y: v.y /= scalar
+        }
+    }
+}
+
 function clamp(v1, limit) {
     v1.x = v1.x > 0 ? Math.min(v1.x, limit) : Math.max(v1.x, -limit);
     v1.y = v1.y > 0 ? Math.min(v1.y, limit) : Math.max(v1.y, -limit);
@@ -52,7 +86,7 @@ function sign() {
 }
 
 function generateBoids() {
-    const size = 200;
+    const size = 20;
     return [...new Array(size)]
         .map(_ => {
             return {
@@ -69,78 +103,99 @@ function distance(p1, p2) {
     );
 }
 
-function alignment(dot) {
-    const perceptionDist = 25;
-    const steering = { x: 0, y: 0 }
-    let total = 0;
-    for (let otherDot of boids) {
-        if (dot === otherDot) continue;
-        const dist = distance(dot.position, otherDot.position);
-        if (dist < perceptionDist) {
-            addVectors(steering, otherDot.velocity);
-            total += 1;
-        }
-    }
-
-    divVector(steering, total)
-
-    return steering;
-}
-
 function separation(dot) {
     const protectiveRange = 10;
-    const steering = { x: 0, y: 0 }
-    let total = 0;
-    for (let otherDot of boids) {
-        if (dot === otherDot) continue;
-        const dist = distance(dot.position, otherDot.position);
+
+    const close = {
+        dx: 0,
+        dy: 0
+    }
+
+    for (let other of boids) {
+        if (dot === other) continue;
+        const dist = distance(dot.position, other.position);
+
         if (dist < protectiveRange) {
-            addVectors(steering, multVector(subVectorsNew(dot.position, otherDot.position), 2));
+            close.dx += dot.position.x - other.position.x
+            close.dy += dot.position.y - other.position.y
+        }
+    }
+
+    const AVOID_FACTOR = 0.05;
+    dot.velocity.x += close.dx * AVOID_FACTOR;
+    dot.velocity.y += close.dy * AVOID_FACTOR;
+}
+
+function alignment(dot) {
+    const perceptionDist = 25;
+    const totalVelocity = {
+        x: 0,
+        y: 0
+    }
+
+    let total = 0;
+    for (let other of boids) {
+        if (dot === other) continue;
+        const dist = distance(dot.position, other.position);
+        if (dist < perceptionDist) {
+            totalVelocity.x += other.velocity.x;
+            totalVelocity.y += other.velocity.y;
             total += 1;
         }
     }
-    divVector(steering, total)
-    return steering;
+
+    const MATCHING_FACTOR = 0.05;
+
+    if (total > 0) {
+        const xAvg = totalVelocity.x / total;
+        const yAvg = totalVelocity.y / total;
+
+        dot.velocity.x += (xAvg - dot.velocity.x) * MATCHING_FACTOR;
+        dot.velocity.y += (yAvg - dot.velocity.y) * MATCHING_FACTOR;
+    }
 }
 
 function cohesion(dot) {
-    const protectiveRange = 50;
-    const steering = { x: 0, y: 0 }
+    const perceptionDist = 25;
+    const totalPosition = {
+        x: 0,
+        y: 0
+    }
+
     let total = 0;
-    for (let otherDot of boids) {
-        if (dot === otherDot) continue;
-        const dist = distance(dot.position, otherDot.position);
-        if (dist < protectiveRange) {
-            addVectors(steering, otherDot.velocity);
+    for (let other of boids) {
+        if (dot === other) continue;
+        const dist = distance(dot.position, other.position);
+        if (dist < perceptionDist) {
+            totalPosition.x += other.position.x;
+            totalPosition.y += other.position.y;
             total += 1;
         }
     }
-    divVector(steering, total);
-    return steering;
+
+    const CENTERING_FACTOR = 0.0005;
+
+    if (total > 0) {
+        const xAvg = totalPosition.x / total;
+        const yAvg = totalPosition.y / total;
+
+        dot.velocity.x += (xAvg - dot.position.x) * CENTERING_FACTOR;
+        dot.velocity.y += (yAvg - dot.position.y) * CENTERING_FACTOR;
+    }
 }
 
 function flock() {
     for (let dot of boids) {
-        const align = multVector(alignment(dot), ALIGNMENT);
-        const separate = multVector(separation(dot), SEPARATION);
-        const coh = multVector(cohesion(dot), COHESION);
-
-        addVectors(dot.accelaration, align);
-        addVectors(dot.accelaration, separate);
-        addVectors(dot.accelaration, coh);
+        separation(dot);
+        alignment(dot);
+        cohesion(dot);
     }
 }
 
 function update() {
     for (let dot of boids) {
-        addVectors(dot.velocity, dot.accelaration);
         clamp(dot.velocity, 1.2);
         addVectors(dot.position, dot.velocity);
-
-        dot.accelaration = {
-            x: 0,
-            y: 0
-        }
 
         if (dot.position.x > WIDTH) {
             dot.position.x = 0;
@@ -163,22 +218,19 @@ function drawDot({ x, y }) {
 }
 
 function draw() {
-
-    for (let dot of boids) {
-        drawDot(dot.position)
-    }
-
-}
-
-function loop(time) {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
+    for (let dot of boids) {
+        drawDot(dot.position)
+    }
+}
+
+function loop(time) {
     flock();
     update();
     draw();
-
     window.requestAnimationFrame(loop);
 }
 
