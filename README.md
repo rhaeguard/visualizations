@@ -17,3 +17,4 @@ In this repository, I simply put all the fun visualization projects I have done 
 - [ray casting 3d](./ray_casting_3d/)
 - [boids](./boids/)
 - [ascii video](./ascii_video/)
+- [binary visualization](./binary-visualization/)
