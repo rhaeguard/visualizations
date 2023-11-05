@@ -59,7 +59,7 @@ for (let a = from; a <= to; a += step) {
 
         ctx.fillRect(x, y, 5, 5);
         if (colorMap[iter] == null) {
-            colorMap[iter] = generateColor();
+            colorMap[iter] = generateColor(iter);
         }
         ctx.fillStyle = colorMap[iter];
     }
