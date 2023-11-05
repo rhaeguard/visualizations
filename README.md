@@ -1,6 +1,6 @@
 # Visualizations
 
-In this repository, I simply put all the fun visualization projects I have done with the JavaScript Canvas API (mostly). Check out each project below to see the results, or alternatively try them online: https://visualizations-one.vercel.app
+In this repository, I simply put all the fun visualization projects I have done with the JavaScript Canvas API (mostly). Check out each project below to see the results, or alternatively try them online: https://rhaeguard.github.io/visualizations
 
 ## Table of contents
 
