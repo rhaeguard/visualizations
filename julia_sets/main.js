@@ -1,5 +1,6 @@
+// Normalized Iteration Count algorithm inspired from https://solarianprogrammer.com/2013/02/28/mandelbrot-set-cpp-11/
 const generateColor = (iter) => {
-    var t = iter/maxIteration; // Normalized Iteration Count
+    var t = iter/maxIteration;
     var r = 2.5*t**rlp*(1-t)**rrp;
     var g = 2.5*t**glp*(1-t)**grp;
     var b = 2.5*t**blp*(1-t)**brp; 
