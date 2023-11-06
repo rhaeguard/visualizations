@@ -1,10 +1,22 @@
 // Reference: https://en.wikipedia.org/wiki/Mandelbrot_set
 const magnitude = (a, b) => Math.sqrt(a * a + b * b);
 
-const generateColor = () => {
-    const randomColor = Math.floor(Math.random() * 16777215).toString(16);
-    return `#${randomColor}`
+// Normalized Iteration Count algorithm inspired from https://solarianprogrammer.com/2013/02/28/mandelbrot-set-cpp-11/
+const generateColor = (iter) => {
+    var t = iter/maxIteration; 
+    var r = 2.5*t**rlp*(1-t)**rrp;
+    var g = 2.5*t**glp*(1-t)**grp;
+    var b = 2.5*t**blp*(1-t)**brp; 
+    // factor of 2 caps off parametric functions at 1, 
+    // but 2.5 potential overflow is not a big deal as rgb values higher than 255 are capped
+    r = Math.floor(r*255); g = Math.floor(g*255); b = Math.floor(b*255);
+    return `rgb(${r},${g},${b})`
 };
+
+// cmap parametric functions zeros multiplicities, randomized between 0.5 and 2
+const rlp = Math.random()*1.5+0.5; const rrp = Math.random()*1.5+0.5;
+const glp = Math.random()*1.5+0.5; const grp = Math.random()*1.5+0.5;
+const blp = Math.random()*1.5+0.5; const brp = Math.random()*1.5+0.5;
 
 const WIDTH = 1000;
 
@@ -51,7 +63,7 @@ for (let a = from; a <= to; a += step) {
 
         ctx.fillRect(x, y, 5, 5);
         if (colorMap[iter] == null) {
-            colorMap[iter] = generateColor();
+            colorMap[iter] = generateColor(iter);
         }
         ctx.fillStyle = colorMap[iter];
     }
