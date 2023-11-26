@@ -18,3 +18,4 @@ In this repository, I simply put all the fun visualization projects I have done 
 - [boids](./boids/)
 - [ascii video](./ascii_video/)
 - [binary visualization](./binary-visualization/)
+- [multi-window canvas](./multi_window/)

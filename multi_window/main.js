@@ -1,22 +1,32 @@
-const windowName = `n${Math.floor(Math.random() * 100)}`
+window.addEventListener("beforeunload", function (e){
+    window.sessionStorage.tabId = window.tabId;
+});
+
+window.addEventListener("load", function (){
+    if (window.sessionStorage.tabId){
+        window.tabId = window.sessionStorage.tabId;
+        window.sessionStorage.removeItem("tabId");
+    } else {
+        window.tabId = `n${Math.floor(Math.random() * 1000000)}`
+    }
+
+    window.requestAnimationFrame(redraw)
+});
 
 const canvas = document.getElementById("canvas");
-canvas.width = 1536;
-canvas.height = 707;
-// canvas.width = window.screen.availWidth;
-// canvas.height = window.screen.availHeight;
+canvas.width = window.screen.availWidth;
+canvas.height = window.screen.availHeight;
 const ctx = canvas.getContext("2d");
 
-window.requestAnimationFrame(redraw)
+function dot(x, y) {
+    return {
+        x: x,
+        y: y,
+        last: Date.now()
+    }
+}
 
-function redraw() {
-    // clear the canvas for redrawing...
-
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    
-    // offset from the top left of the screen
-    const offsetX = window.screenX;
-    const offsetY = window.screenY;
+function fetchAndUpdateLocalStorage(offsetX, offsetY) {
     // size of the actual webpage
     const sWidth = window.innerWidth;
     const sHeight = window.innerHeight;
@@ -26,22 +36,37 @@ function redraw() {
     const y = sHeight / 2;
 
     // get the saved points
-    let points = JSON.parse(localStorage.getItem("points"))
+    let points = JSON.parse(localStorage.getItem("points")) ?? {}
     // add the new position to the points
-    if (points) {
-        points[windowName] = [x+offsetX, y+offsetY]
-    } else {
-        points = {
-            [windowName]: [x+offsetX, y+offsetY]
-        }
-    }
+    points[window.tabId] = dot(x+offsetX, y+offsetY)
+
+    const now = Date.now()
+    points = Object.fromEntries(Object.entries(points).filter(([_, value]) => now - value.last <= 500))
+
     // persist changes
     localStorage.setItem("points", JSON.stringify(points))
+
+    return points
+}
+
+function redraw() {
+    // clear the canvas for redrawing...
+
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    
+    // offset from the top left of the screen
+    const offsetX = window.screenX;
+    const offsetY = window.screenY;
+
+    const points = fetchAndUpdateLocalStorage(offsetX, offsetY)
 
     // go over all points and copy them over to `pts` array
     const pts = []
     for (let k in points) {
-        pts.push(points[k])
+        pts.push({
+            x: points[k].x,
+            y: points[k].y
+        })
     }
 
     // find the convex hull of the polygon
@@ -51,15 +76,15 @@ function redraw() {
     for (let i = 0; i < outlinePoints.length; i++) {
         let p = outlinePoints[i];
         if (i == 0) {
-            ctx.moveTo(p[0]-offsetX, p[1]-offsetY)
+            ctx.moveTo(p.x-offsetX, p.y-offsetY)
         } else {
-            ctx.lineTo(p[0]-offsetX, p[1]-offsetY)
+            ctx.lineTo(p.x-offsetX, p.y-offsetY)
         }
 
         // close the loop
         if (i == outlinePoints.length - 1) {
             p = outlinePoints[0]
-            ctx.lineTo(p[0]-offsetX, p[1]-offsetY)
+            ctx.lineTo(p.x-offsetX, p.y-offsetY)
         }
     }
     
@@ -69,7 +94,7 @@ function redraw() {
     // draw the dots
     for (let p of pts) {
         ctx.beginPath();
-        ctx.arc(p[0]-offsetX, p[1]-offsetY, 10, 0, 2 * Math.PI);
+        ctx.arc(p.x-offsetX, p.y-offsetY, 10, 0, 2 * Math.PI);
         ctx.fillstyle = 'black'
         ctx.fill();
     }
@@ -80,14 +105,14 @@ function redraw() {
 
 // reference: https://stackoverflow.com/a/3461533/9985287
 function isToLeftOf(st, end, point) {
-    return (end[0] - st[0])*(point[1] - st[1]) - (end[1] - st[1])*(point[0] - st[0]) > 0;
+    return (end.x - st.x)*(point.y - st.y) - (end.y - st.y)*(point.x - st.x) > 0;
 }
 
 // reference: https://en.wikipedia.org/wiki/Gift_wrapping_algorithm
 function findConvexHullPoints(allPoints) {
     let leftmost = allPoints[0]
     for (let p of allPoints) {
-        if (p[0] < leftmost[0]) {
+        if (p.x < leftmost.x) {
             leftmost = p
         }
     }
