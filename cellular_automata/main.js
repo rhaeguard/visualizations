@@ -2,7 +2,7 @@
 class Rule110 {
     static intervalHandles = []
     
-    constructor(canvasWidth, canvasHeight, gridStep) {
+    constructor(canvasWidth, canvasHeight, gridStep, predefinedPatterns) {
         this.canvasWidth = canvasWidth;
         this.canvasHeight = canvasHeight;
         this.gridStep = gridStep;
@@ -10,7 +10,7 @@ class Rule110 {
         this.generationSize = Math.floor(this.canvasWidth / this.gridStep);
         this.queue = Array(this.generationSize);
 
-        this.predefinedPatterns = [0, 1, 1, 1, 0, 1, 1, 0];
+        this.predefinedPatterns = predefinedPatterns;
 
         let canvas = document.getElementById("grid");
         // this is how you resize the canvas
@@ -18,7 +18,7 @@ class Rule110 {
         canvas.height = this.canvasHeight;
         this.ctx = canvas.getContext("2d");
         
-        this.drawSpeed = 500;
+        this.drawSpeed = 100;
     }
 
     // Reference: https://codereview.stackexchange.com/a/135207
@@ -47,8 +47,9 @@ class Rule110 {
     }
 
     display(row, arr) {
+        console.log(row, arr)
         for (let i = 0; i < arr.length; i++) {
-            if (i > 0 && i < arr.length - 1) {
+            if (i >= 0 && i <= arr.length - 1) {
                 if (arr[i] === 1) {
                     this.ctx.fillRect(
                         i * this.gridStep,
@@ -68,8 +69,9 @@ class Rule110 {
         const size = this.generationSize;
         // initialize the current generation
         let curr = Array(size).fill(0);
-        curr[0] = 1;
-        curr[size - 1] = 1;
+        // curr[0] = 1;
+        // curr[size - 1] = 1;
+        curr[Math.floor(size / 2)] = 1
         // allocate space for the next generation
         let next = Array(size).fill(0);
 
@@ -79,16 +81,18 @@ class Rule110 {
             this.queue[size - i - 1] = [i, [...curr]];
             
             // scan the current generation to generate the next one
-            for (let j = 1; j < size - 1; j++) {
+            for (let j = 1; j < size-1; j++) {
                 // we scan three bits at a time, a, b and c represent those bits
-                const a = curr[j - 1];
+                // ((i % max) + max) % max
+                const a = curr[j-1];
                 const b = curr[j];
-                const c = curr[j + 1];
+                const c = curr[j+1];
                 // we treat a, b, c in general as one decimal number but in binary format.
                 // thus we need to convert it back to the decimal format so that we can decide which
                 // pattern will be next 
                 const ix = (a << 2) | (b << 1) | c;
-                next[j] = this.predefinedPatterns[ix];
+                let mask = 1 << ix;
+                next[j] = (this.predefinedPatterns & mask) === 0 ? 0 : 1;
             }
             // swap between curr and next
             const temp = curr;
@@ -117,11 +121,22 @@ class Rule110 {
     }
 }
 
-document.getElementById("drawBtn").addEventListener("click", (e) => {
-    const w = parseInt(document.getElementById("width").value);
-    const g = parseInt(document.getElementById("generation").value);
+function getValueOf (id, defaultValue) {
+    const element = document.getElementById(id)
+    const v = element.value
+    if (v && v.trim() !== "") {
+        return v
+    }
+    element.value = defaultValue
+    return defaultValue
+}
 
-    const r = new Rule110(w, w, Math.floor(w / g));
+document.getElementById("drawBtn").addEventListener("click", (e) => {
+    const w = parseInt(getValueOf("width", 500));
+    const g = parseInt(getValueOf("generation", 25));
+    const p = parseInt(getValueOf("rule", 110));
+
+    const r = new Rule110(w, w, Math.floor(w / g), p);
     r.drawGrid();
     r.calculate();
     r.draw();

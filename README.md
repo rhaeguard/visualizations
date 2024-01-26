@@ -4,7 +4,7 @@ In this repository, I simply put all the fun visualization projects I have done 
 
 ## Table of contents
 
-- [rule 110](./rule110/)
+- [cellular automata](./cellular_automata/)
 - [mandelbrot set](./mandelbrot/)
 - [julia set](./julia_sets/)
 - [times table](./times_table/)
