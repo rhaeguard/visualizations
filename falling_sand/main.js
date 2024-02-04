@@ -9,8 +9,31 @@ const canvas = document.getElementById("canvas")
 canvas.height = HEIGHT
 canvas.width = WIDTH
 
+
+function getColor() {
+    const index = Math.ceil(Math.random() * 10) % 5
+    return [
+        "#f6d7b0",
+        "#f2d2a9",
+        "#eccca2",
+        "#e7c496",
+        "#e1bf92",
+    ][index]
+}
+
+function cell(data) {
+    if (data != undefined) {
+        return {...data}
+    }
+
+    return {
+        value: 0,
+        color: ''
+    }
+}
+
 function createMatrix() {
-    return Array.from(Array(rowCount), () => new Array(colCount).fill(0));
+    return Array.from(Array(rowCount), () => new Array(colCount).fill(cell()));
 }
 
 const ctx = canvas.getContext("2d");
@@ -50,8 +73,9 @@ canvas.addEventListener('mousemove', (ev) => {
             const xx = ax + offsetX
             const yy = ay + offsetY
 
-            if (matrix[yy][xx] === 0) {
-                matrix[yy][xx] = 1
+            if (matrix[yy][xx].value === 0) {
+                matrix[yy][xx].value = 1
+                matrix[yy][xx].color = getColor()
             }
         }
     }
@@ -76,13 +100,12 @@ function update() {
             // neighbors
             if (r + 1 < rowCount) {
                 let me = matrix[r][c]
-                let down = matrix[r+1][c]
-                if (down === 0 || Math.random > 0.2) {
-                    matrix[r+1][c] = me
-                    matrix[r][c] = 0
+                if (matrix[r+1][c].value === 0 || Math.random > 0.2) {
+                    matrix[r+1][c] = cell(me)
+                    matrix[r][c] = cell()
                 } else {
-                    let right = c+1 < colCount ? matrix[r+1][c+1] : 1
-                    let left = c-1 >= 0 ? matrix[r+1][c-1] : 1
+                    let right = c+1 < colCount ? matrix[r+1][c+1].value : 1
+                    let left = c-1 >= 0 ? matrix[r+1][c-1].value : 1
                     
                     
                     if (right === 0 && left === 0) {
@@ -94,11 +117,11 @@ function update() {
                     }
 
                     if (right === 0) {
-                        matrix[r+1][c+1] = me
-                        matrix[r][c] = 0
+                        matrix[r+1][c+1] = cell(me)
+                        matrix[r][c] = cell()
                     } else if (left === 0) {
-                        matrix[r+1][c-1] = me
-                        matrix[r][c] = 0
+                        matrix[r+1][c-1] = cell(me)
+                        matrix[r][c] = cell()
                     }
                 }
             }
@@ -109,8 +132,8 @@ function update() {
 function drawMatrix() {
     for (let r = 0; r < rowCount; r++) {
         for (let c = 0; c < colCount; c++) {
-            if (matrix[r][c] === 1) {
-                ctx.fillStyle = '#C2B280'
+            if (matrix[r][c].value === 1) {
+                ctx.fillStyle = matrix[r][c].color //'#C2B280'
                 ctx.fillRect(c*STEP, r*STEP, STEP, STEP);
             }
         }
