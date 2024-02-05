@@ -11,6 +11,7 @@ const ctx = canvas.getContext("2d");
 let matrix = createMatrix()
 
 let isMousePressed = false
+let generatedObject = 'sand'
 
 canvas.addEventListener('mousedown', (ev) => { isMousePressed = true })
 canvas.addEventListener('mouseup', (ev) => { isMousePressed = false })
@@ -36,7 +37,13 @@ canvas.addEventListener('mousemove', (ev) => {
             const yy = ay + offsetY
 
             if (matrix[yy][xx].value === 0) {
-                matrix[yy][xx] = generateWater()
+                let generatedValue = null
+                if (generatedObject === "sand") {
+                    generatedValue = generateSand()
+                } else {
+                    generatedValue = generateWater()
+                }
+                matrix[yy][xx] = generatedValue
             }
         }
     }

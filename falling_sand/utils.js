@@ -18,3 +18,7 @@ function getColor(cell) {
     }
     return ""
 }
+
+function handleMaterialChange(ev) {
+    generatedObject = ev.value
+}

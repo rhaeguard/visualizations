@@ -4,10 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Falling Sand</title>
+
+    <style>
+        #main-container {
+            display: flex;
+            flex-direction: row;
+        }
+
+        #controls {
+            margin-left: 2%;
+        }
+    </style>
 </head>
 <body>
     <!-- <h1>Click and hold the left mouse button to throw some sand!</h1> -->
-    <canvas id="canvas" style="border: 1px solid black; box-sizing: border-box;"></canvas>
+    <div id="main-container">
+        <canvas id="canvas" style="border: 1px solid black; box-sizing: border-box;"></canvas>
+        <div id="controls">
+            <h3>Controls</h3>
+            <label for="water-material">
+                <input type="radio" name="material" value="water" id="water-material" onchange="handleMaterialChange(this)"> water
+            </label>
+            <label for="sand-material">
+                <input type="radio" name="material" value="sand" id="sand-material" checked onchange="handleMaterialChange(this)"> sand
+            </label>
+        </div>
+    </div>
 
     <script src="consts.js"></script>
     <script src="utils.js"></script>

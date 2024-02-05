@@ -19,13 +19,41 @@ function generateSand() {
 
 function updateSand(currentMatrix, newMatrix, r, c) {
     const me = newMatrix[r][c]
-    if (newMatrix[r+1][c].value === 0 || Math.random > 0.2) {
+
+    const canMoveDown = (r, c) => {
+        if (newMatrix[r][c].value === 0) {
+            return true
+        } else {
+            if (newMatrix[r][c].type === 'water') {
+                return true
+            }
+        }
+        return false
+    }
+
+    if (r+1 < rowCount && canMoveDown(r+1, c)) {
+        const t = newMatrix[r+1][c]
+        const isWater = t.type === "water"
         newMatrix[r+1][c] = cell(me)
-        newMatrix[r][c] = cell()
+        newMatrix[r][c] = isWater ? t : cell()
     } else {
-        let right = c+1 < colCount ? newMatrix[r+1][c+1].value : 1
-        let left = c-1 >= 0 ? newMatrix[r+1][c-1].value : 1
-        
+        let left = 1
+        let right = 1
+        if (r+1 < rowCount) {
+            if (c+1 < colCount) {
+                right = newMatrix[r+1][c+1].value
+                if (canMoveDown(r+1, c+1)) {
+                    right = 0
+                }
+            }
+
+            if (c-1 >= 0) {
+                left = newMatrix[r+1][c-1].value
+                if (canMoveDown(r+1, c-1)) {
+                    left = 0
+                }
+            }
+        }
         
         if (right === 0 && left === 0) {
             if (Math.random() > 0.5) {
@@ -36,11 +64,15 @@ function updateSand(currentMatrix, newMatrix, r, c) {
         }
 
         if (right === 0) {
+            const t = newMatrix[r+1][c+1]
+            const isWater = t.type === "water"
             newMatrix[r+1][c+1] = cell(me)
-            newMatrix[r][c] = cell()
+            newMatrix[r][c] = isWater ? t : cell()
         } else if (left === 0) {
+            const t = newMatrix[r+1][c-1]
+            const isWater = t.type === "water"
             newMatrix[r+1][c-1] = cell(me)
-            newMatrix[r][c] = cell()
+            newMatrix[r][c] = isWater ? t : cell()
         }
     }
 }
