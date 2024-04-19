@@ -15,7 +15,7 @@ const rlp = Math.random()*1.5+0.5; const rrp = Math.random()*1.5+0.5;
 const glp = Math.random()*1.5+0.5; const grp = Math.random()*1.5+0.5;
 const blp = Math.random()*1.5+0.5; const brp = Math.random()*1.5+0.5;
 
-const WIDTH = 1000;
+const WIDTH = 600;
 
 const canvas = document.getElementById("canvas");
 canvas.width = WIDTH;
@@ -25,7 +25,7 @@ const ctx = canvas.getContext("2d");
 
 const from = -2;
 const to = 2;
-const step = 0.001;
+const step = 0.01;
 const gap = to - from;
 const mid = Math.floor(gap / 2);
 

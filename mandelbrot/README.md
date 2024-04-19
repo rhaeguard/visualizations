@@ -1,1 +1,3 @@
-![](./mandelbrot_1.png)
+# Mandelbrot Fractal
+
+![](./mandelbrot_example.png)
