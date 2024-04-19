@@ -156,17 +156,28 @@ function sortByAngle(x, y, pts) {
 
 renderAllLines();
 
-function drawTriangle([a, b, c]) {
-    ctx.fillStyle = "rgba(255, 255, 255, 1)";
+function drawIlluminatedZone(lightPos, dots) {
+    const gradient = ctx.createRadialGradient(
+        lightPos.x, lightPos.y, 1, lightPos.x, lightPos.y, 400
+    );
+
+    // Add three color stops
+    gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+    gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+    
+    ctx.fillStyle = gradient; 
 
     ctx.beginPath();
-
-    ctx.moveTo(a.x, a.y);
-    ctx.lineTo(b.x, b.y);
-    ctx.lineTo(c.x, c.y);
-
-    ctx.closePath();
-
+    for (let i = 0; i < dots.length; i++) {
+        // this will wrap around
+        const [a, b] = [dots[i], dots[(i + 1)%dots.length]]
+        if (i == 0) {
+            ctx.moveTo(a.x, a.y);
+        } else {
+            ctx.lineTo(a.x, a.y);
+        }
+        ctx.lineTo(b.x, b.y);
+    }
     ctx.fill();
 }
 
@@ -180,7 +191,7 @@ canvas.addEventListener("mousemove", (e) => {
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
     ctx.beginPath();
-    ctx.fillStyle = "red";
+    ctx.fillStyle = "black";
     ctx.arc(x, y, 5, 2 * Math.PI, 0, false);
     ctx.fill();
 
@@ -223,21 +234,12 @@ canvas.addEventListener("mousemove", (e) => {
             let ptn = pts[0];
             dots.push(ptn);
             const { x: _x, y: _y } = ptn;
-
-            ctx.strokeStyle = "white";
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(_x, _y);
-            ctx.stroke();
         }
     });
 
-    // triangle drawing...
     sortByAngle(x, y, dots);
-    const top = point(x, y);
+    const lightPosition = point(x, y);
     dots.push(dots[0]);
-    for (let i = 0; i < dots.length - 1; i++) {
-        const triangle = [top, dots[i], dots[i + 1]];
-        drawTriangle(triangle);
-    }
+
+    drawIlluminatedZone(lightPosition, dots)
 });
