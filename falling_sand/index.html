@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Falling Sand</title>
+    <title>Falling Sand Simulator</title>
 
     <style>
         #main-container {
@@ -17,11 +17,15 @@
     </style>
 </head>
 <body>
-    <!-- <h1>Click and hold the left mouse button to throw some sand!</h1> -->
     <div id="main-container">
-        <canvas id="canvas" style="border: 1px solid black; box-sizing: border-box;"></canvas>
+        <div>
+            <canvas id="canvas" style="border: 1px solid black; box-sizing: border-box;"></canvas>
+        </div>
         <div id="controls">
+            <h1>Falling Sand Simulator</h1>
             <h3>Controls</h3>
+            <p>Hold the left mouse button and move the cursor around to spread sand/water!</p>
+            <h3>Materials</h3>
             <label for="water-material">
                 <input type="radio" name="material" value="water" id="water-material" onchange="handleMaterialChange(this)"> water
             </label>
