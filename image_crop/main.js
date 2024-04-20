@@ -13,7 +13,7 @@ let end = null;
 
 let current = null;
 
-function getParams() {
+function getParams(end) {
     const [ax, ay] = start;
     const [bx, by] = end;
     const w = Math.abs(ax - bx)
@@ -36,11 +36,24 @@ function crop() {
 
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         ctx.drawImage(this, x, y, w, h, 0, 0, w, h)
+
+        const imageTag = document.createElement("img");
+        imageTag.src = ctx.canvas.toDataURL();
+        imageTag.style.width = "100%";
+
+        const column = document.querySelectorAll("#collage img").length % 2 == 0 ? 1 : 2;
+        document.querySelector(`#collage > .column:nth-child(${column})`).prepend(imageTag)
+
+        canvas.width = this.naturalWidth;
+        canvas.height = this.naturalHeight;
+
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.drawImage(this, 0, 0);
     };
+    image.setAttribute('crossorigin', 'anonymous');
     // Draw when image has loaded
     // Load an image of intrinsic size 300x227 in CSS pixels
-    image.src =
-        "https://www.denofgeek.com/wp-content/uploads/2022/06/Made-in-Abyss-Season-2.jpg?resize=768%2C432";
+    image.src = SOURCE_IMAGE;
 
 }
 
@@ -57,12 +70,12 @@ function redraw() {
 
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         ctx.drawImage(this, 0, 0);
-        if (start != null) {
+        if (start != null) {            
             let copyEnd = end;
             if (end == null) {
                 copyEnd = start
-            } 
-            current = getParams();
+            }
+            current = getParams(copyEnd);
             const [w, h, top] = current;
             const [x, y] = top
             ctx.rect(x, y, w, h);
@@ -73,8 +86,7 @@ function redraw() {
     };
     // Draw when image has loaded
     // Load an image of intrinsic size 300x227 in CSS pixels
-    image.src =
-        "https://www.denofgeek.com/wp-content/uploads/2022/06/Made-in-Abyss-Season-2.jpg?resize=768%2C432";
+    image.src = SOURCE_IMAGE;
 }
 
 canvas.addEventListener("click", (e) => {
