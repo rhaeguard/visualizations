@@ -20,3 +20,4 @@ In this repository, I simply put all the fun visualization projects I have done 
 - [binary visualization](./binary-visualization/)
 - [multi-window canvas](./multi_window/)
 - [falling sand](./falling_sand/)
+- [image blurring](./blur/)
