@@ -31,7 +31,7 @@ function intersects(L1, L2) {
         ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4));
 
     if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
-        return point(x1 + t * (x2 - x1), y1 + t * (y2 - y1));
+        return [point(x1 + t * (x2 - x1), y1 + t * (y2 - y1)), t];
     }
 
     return null;
@@ -43,9 +43,11 @@ function distance(p1, p2) {
     );
 }
 
-function getLineByAngle(x, y, angle, WIDTH) {
-    const k = 2 * WIDTH * Math.cos(angle);
-    const z = 2 * WIDTH * Math.sin(angle);
+// given a start coordinate, angle and length of the line segment,
+// this function returns the start and end coords of that line segment
+function getLineByAngle(x, y, angle, lineWidth) {
+    const k = lineWidth * Math.cos(angle);
+    const z = lineWidth * Math.sin(angle);
 
     const a = x + k;
     const b = y + z;

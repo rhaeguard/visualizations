@@ -1,12 +1,17 @@
-const VERTICAL_LINES = 510;
+const VERTICAL_LINES = 1020;
 
 const HEIGHT = 573.75;
 const WIDTH = 1020;
 const STEP = WIDTH / VERTICAL_LINES;
 
+const ROTATION_ANGLE_STEP = 0.05
+const PLAYER_MOVEMENT_STEP = 0.001
+
 const worldCanvas = document.getElementById("canvas");
 worldCanvas.height = HEIGHT;
 worldCanvas.width = WIDTH;
+
+const BRICK_IMG = document.getElementById("brick");
 
 const CELL_TO_COLOR = [
     "grey",
@@ -16,14 +21,28 @@ const CELL_TO_COLOR = [
     "green"
 ];
 
+// const COLOR_TO_RGB_INTENSITY = {
+//     "red": intensity => `rgb(${intensity}, 11, 11)`,
+//     "black": intensity => `rgb(${intensity}, 11, 11)`,
+//     "green": intensity => `rgb(11, ${intensity}, 11)`,
+//     "blue": intensity => `rgb(11, 11, ${intensity})`,
+// }
+
+const COLOR_TO_RGB_INTENSITY = {
+    "red": t => `rgb(${t * 255}, 0, 0)`,
+    "black": t => `rgb(${t * 255}, 0, 0)`,
+    "green": t => `rgb(0, ${t * 255}, 0)`,
+    "blue": t => `rgb(0, 0, ${t * 255})`,
+}
+
 const GAME_WORLD = [
     [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 1, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 1, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 1, 1, 1, 1],
-    [1, 1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1],
 ];
 
@@ -32,10 +51,17 @@ const ALL_LINES = getAllLines();
 const PLAYER = {
     x: 100,
     y: 200,
-    rotationAngle: 20,
-    fixedAngle: Math.PI / 3,
-    keys: {}
+    rotationAngle: 0,
+    fieldOfView: Math.PI / 3,
+    keys: {
+        "ArrowRight": false,
+        "ArrowLeft": false,
+        "ArrowUp": false,
+        "ArrowDown": false,
+    }
 };
+
+let lastRenderTime = 0
 
 function getAllLines() {
     const STEP = 50;
@@ -99,20 +125,25 @@ function drawMiniMap() {
 
     function drawRays() {
         const HIT_BOX = [];
-        const step = PLAYER.fixedAngle / VERTICAL_LINES;
-        for (let radian = -PLAYER.fixedAngle / 2; radian < PLAYER.fixedAngle / 2; radian += step) {
+        const step = PLAYER.fieldOfView / VERTICAL_LINES;
+        for (let radian = -PLAYER.fieldOfView / 2; radian < PLAYER.fieldOfView / 2; radian += step) {
             const radianRotated = radian + PLAYER.rotationAngle;
-            const line = getLineByAngle(PLAYER.x, PLAYER.y, radianRotated, WIDTH);
+            const line = getLineByAngle(PLAYER.x, PLAYER.y, radianRotated, WIDTH * 2);
 
             const arr = ALL_LINES
                 .map(target => {
                     let result = intersects(target.line, line)
-                    return {
-                        intersection: result,
-                        color: target.color
+                    if (result !== null) {
+                        const [point, t] = result;
+                        return {
+                            intersection: point,
+                            t: t,
+                            color: target.color
+                        }
                     }
+                    return null
                 })
-                .filter(result => result.intersection !== null)
+                .filter(result => result !== null)
                 .map(result => {
                     return {
                         ...result,
@@ -121,6 +152,10 @@ function drawMiniMap() {
                 });
 
             arr.sort((a, b) => a.distance - b.distance);
+
+            if (arr.length == 0) {
+                continue;
+            }
 
             const closest = arr[0].intersection;
             arr[0].distance *= Math.cos(radian);
@@ -151,15 +186,23 @@ function updateWorldView(HIT_BOX) {
 
     let verticalStripe = 0;
 
-    for (let { distance } of HIT_BOX) {
+    for (let { distance, color, t } of HIT_BOX) {
         const height = (HEIGHT / distance) * 40;
         let x = verticalStripe * STEP;
         let y = (HEIGHT - height) / 2;
-        
-        let red = Math.max(255 - Math.min(distance, 255), 30);
+       
+        let intensity = Math.max(255 - Math.min(distance, 255), 30);
 
-        ctx.fillStyle = `rgb(${red}, 11, 11)`;
-        ctx.fillRect(x, y, STEP, height);
+        // ctx.fillStyle = COLOR_TO_RGB_INTENSITY[color](t)
+        // ctx.fillRect(x, y, STEP, height);
+        // drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+        ctx.drawImage(
+            BRICK_IMG,
+            t*128, 0,
+            50 / 128, 128, // swidth is not right
+            x, y, 
+            STEP, height
+        )
         verticalStripe++;
     }
 }
@@ -167,7 +210,8 @@ function updateWorldView(HIT_BOX) {
 const HIT_BOX = drawMiniMap()
 updateWorldView(HIT_BOX);
 
-function nextPoint(p0, p1, t) {
+// linear interpolation
+function lerp(p0, p1, t) {
     const btx = p0.x + t * (p1.x - p0.x);
     const bty = p0.y + t * (p1.y - p0.y);
     return point(btx, bty);
@@ -181,19 +225,21 @@ document.addEventListener('keyup', ({key}) => {
     PLAYER.keys[key] = !(key && key.startsWith("Arrow"));
 });
 
-function updateAndRender(time) {
-    if (PLAYER.keys["ArrowRight"]) {
-        PLAYER.rotationAngle += 0.005;
-    }
+function gameloop(timePassed) {
+    const deltaTimeMs = timePassed - lastRenderTime;
     
-    if (PLAYER.keys["ArrowLeft"]) {
-        PLAYER.rotationAngle -= 0.005;
-    } 
+    // lock the framerate to 60
+    if (deltaTimeMs < (1000 / 60)) {
+        window.requestAnimationFrame(gameloop)
+        return;
+    }
+
+    PLAYER.rotationAngle += (PLAYER.keys["ArrowRight"] - PLAYER.keys["ArrowLeft"]) * ROTATION_ANGLE_STEP
     
     if (PLAYER.keys["ArrowUp"] || PLAYER.keys["ArrowDown"]) {
         const forwardLine = getLineByAngle(PLAYER.x, PLAYER.y, PLAYER.rotationAngle, WIDTH * 2);
-        const t = PLAYER.keys["ArrowUp"] ? 0.00005 : -0.00005;
-        const {x, y} = nextPoint(forwardLine.p1, forwardLine.p2, t);
+        const t = PLAYER.keys["ArrowUp"] ? PLAYER_MOVEMENT_STEP : -PLAYER_MOVEMENT_STEP;
+        const {x, y} = lerp(forwardLine.p1, forwardLine.p2, t);
 
         const blockX = Math.floor(x / 50);
         const blockY = Math.floor(y / 50);
@@ -205,8 +251,9 @@ function updateAndRender(time) {
 
     const HIT_BOX = drawMiniMap()
     updateWorldView(HIT_BOX);
-    window.requestAnimationFrame(updateAndRender)
+    lastRenderTime = timePassed
+    window.requestAnimationFrame(gameloop)
 }
 
-window.requestAnimationFrame(updateAndRender);
+window.requestAnimationFrame(gameloop);
 
