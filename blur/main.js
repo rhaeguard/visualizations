@@ -1,17 +1,32 @@
+// canvas dimensions
+const CANVAS_WIDTH = 800;
+const CANVAS_HEIGHT = 800;
+
+// set up the canvas
+const canvas = document.getElementById("canvas")
+canvas.width = CANVAS_WIDTH
+canvas.height = CANVAS_HEIGHT
+const ctx = canvas.getContext("2d")
+
+// load the image
 const img = new Image();
 img.crossOrigin = "anonymous"
 img.src = "./Greenland_467_(35130903436)_(cropped).jpg"
 
-const canvas = document.getElementById("canvas")
-const ctx = canvas.getContext("2d")
 
 img.onload = () => {
     original()
 };
 
-const cartesianToFlat = (x, y) => 4 * (y + 800 * x)
+/**
+ * The pixel buffer is a one-dimension unsigned integer array. 
+ * We need to convert the (x, y) position to a singular index on that array.
+ * In addition to that, each 4 adjacent entry represents the RGBA value for a single pixel (4 array elements per pixel) 
+ * @returns the index on the flat array
+ */
+const cartesianToFlat = (x, y) => 4 * (x + CANVAS_WIDTH * y)
 
-const sumUint8ClampedArrayByIndex = (data, ...indices) => {
+const avgArrayElementsAtPositions = (data, ...indices) => {
     let r = 0;
     let g = 0;
     let b = 0;
@@ -22,12 +37,50 @@ const sumUint8ClampedArrayByIndex = (data, ...indices) => {
         b += data[indices[i] + 2]
     }
 
-    r = Math.round(r / 9)
-    g = Math.round(g / 9)
-    b = Math.round(b / 9)
+    const numberOfElements = indices.length
+
+    r = Math.round(r / numberOfElements)
+    g = Math.round(g / numberOfElements)
+    b = Math.round(b / numberOfElements)
 
     return new Uint8Array([r, g, b])
 }
+
+// Reference: https://en.wikipedia.org/wiki/Box_blur
+const boxBlur = () => {
+    original()
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    const start = performance.now()
+
+    for (let x = 1; x < 800-1; x++) { // skip edges for now
+        for (let y = 1; y < 800-1; y++) { // skip edges for now
+            const [r, g, b] = avgArrayElementsAtPositions(
+                data, 
+                cartesianToFlat(x - 1, y),
+                cartesianToFlat(x + 1, y),
+                cartesianToFlat(x, y - 1),
+                cartesianToFlat(x, y + 1),
+                cartesianToFlat(x - 1, y - 1),
+                cartesianToFlat(x + 1, y - 1),
+                cartesianToFlat(x - 1, y + 1),
+                cartesianToFlat(x + 1, y + 1),
+                cartesianToFlat(x, y),
+            )
+
+            const pos = cartesianToFlat(x, y)
+            data[pos] = r
+            data[pos+1] = g
+            data[pos+2] = b
+        }
+    }
+    const total = performance.now() - start;
+
+    console.log("BoxBlur:", total, "ms")
+    ctx.putImageData(imageData, 0, 0);
+};
 
 const gaussianWeight = (x, y) => {
     const SIGMA = 1.85089642
@@ -60,42 +113,6 @@ const sumUint8ClampedArrayByIndexGauss = (data, ...indices) => {
 
     return new Uint8Array([r, g, b])
 }
-
-// Reference: https://en.wikipedia.org/wiki/Box_blur
-const boxBlur = () => {
-    original()
-
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-
-    const start = performance.now()
-
-    for (let x = 1; x < 800-1; x++) { // skip edges for now
-        for (let y = 1; y < 800-1; y++) { // skip edges for now
-            const [r, g, b] = sumUint8ClampedArrayByIndex(
-                data, 
-                cartesianToFlat(x - 1, y),
-                cartesianToFlat(x + 1, y),
-                cartesianToFlat(x, y - 1),
-                cartesianToFlat(x, y + 1),
-                cartesianToFlat(x - 1, y - 1),
-                cartesianToFlat(x + 1, y - 1),
-                cartesianToFlat(x - 1, y + 1),
-                cartesianToFlat(x + 1, y + 1),
-                cartesianToFlat(x, y),
-            )
-
-            const pos = cartesianToFlat(x, y)
-            data[pos] = r
-            data[pos+1] = g
-            data[pos+2] = b
-        }
-    }
-    const total = performance.now() - start;
-
-    console.log("BoxBlur:", total, "ms")
-    ctx.putImageData(imageData, 0, 0);
-};
 
 // https://en.wikipedia.org/wiki/Gaussian_blur
 const gaussian = () => {
