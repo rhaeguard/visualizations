@@ -1,4 +1,4 @@
-// canvas dimensions
+// default canvas dimensions
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 800;
 
@@ -11,12 +11,17 @@ const ctx = canvas.getContext("2d")
 // load the image
 const img = new Image();
 img.crossOrigin = "anonymous"
-img.src = "./Greenland_467_(35130903436)_(cropped).jpg"
-
+// Markus Trienke, CC BY-SA 2.0 <https://creativecommons.org/licenses/by-sa/2.0>, via Wikimedia Commons
+img.src = "https://upload.wikimedia.org/wikipedia/commons/d/d5/Greenland_467_%2835130903436%29_%28cropped%29.jpg"
 
 img.onload = () => {
     original()
 };
+
+// listen to the changes made to the input field
+document.getElementById("image_source").addEventListener("change", (event) => {
+    img.src = event.target.value
+})
 
 /**
  * The pixel buffer is a one-dimension unsigned integer array. 
@@ -26,49 +31,55 @@ img.onload = () => {
  */
 const cartesianToFlat = (x, y) => 4 * (x + CANVAS_WIDTH * y)
 
-const avgArrayElementsAtPositions = (data, ...indices) => {
+/**
+ * Given the indices, finds the weighted average for each color.
+ * Returns a Uint8Array of RGB
+ */
+const findNewRGBValue = (pixelBuffer, ...indices) => {
     let r = 0;
     let g = 0;
     let b = 0;
 
+    let weightSum = 0;
+    
     for (let i = 0; i < indices.length; i++) {
-        r += data[indices[i] + 0]
-        g += data[indices[i] + 1]
-        b += data[indices[i] + 2]
+        weightSum += indices[i].weight
+        r += pixelBuffer[indices[i].pos + 0] * indices[i].weight
+        g += pixelBuffer[indices[i].pos + 1] * indices[i].weight
+        b += pixelBuffer[indices[i].pos + 2] * indices[i].weight
     }
 
-    const numberOfElements = indices.length
-
-    r = Math.round(r / numberOfElements)
-    g = Math.round(g / numberOfElements)
-    b = Math.round(b / numberOfElements)
+    r = Math.round(r / weightSum)
+    g = Math.round(g / weightSum)
+    b = Math.round(b / weightSum)
 
     return new Uint8Array([r, g, b])
 }
 
 // Reference: https://en.wikipedia.org/wiki/Box_blur
 const boxBlur = () => {
-    original()
-
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
 
     const start = performance.now()
 
-    for (let x = 1; x < 800-1; x++) { // skip edges for now
-        for (let y = 1; y < 800-1; y++) { // skip edges for now
-            const [r, g, b] = avgArrayElementsAtPositions(
-                data, 
-                cartesianToFlat(x - 1, y),
-                cartesianToFlat(x + 1, y),
-                cartesianToFlat(x, y - 1),
-                cartesianToFlat(x, y + 1),
-                cartesianToFlat(x - 1, y - 1),
-                cartesianToFlat(x + 1, y - 1),
-                cartesianToFlat(x - 1, y + 1),
-                cartesianToFlat(x + 1, y + 1),
-                cartesianToFlat(x, y),
-            )
+    const KERNEL_RADIUS = 1;
+
+    for (let x = KERNEL_RADIUS; x < canvas.width-KERNEL_RADIUS; x++) { // skip edges for now
+        for (let y = KERNEL_RADIUS; y < canvas.height-KERNEL_RADIUS; y++) { // skip edges for now
+            const indices = []
+            for (let xx = -KERNEL_RADIUS; xx <= KERNEL_RADIUS; xx++) {
+                for (let yy = -KERNEL_RADIUS; yy <= KERNEL_RADIUS; yy++) {
+                    indices.push(
+                        {
+                            pos: cartesianToFlat(x + xx, y + yy),
+                            weight: 1
+                        }
+                    )
+                }    
+            }
+
+            const [r, g, b] = findNewRGBValue(data, ...indices)
 
             const pos = cartesianToFlat(x, y)
             data[pos] = r
@@ -82,65 +93,44 @@ const boxBlur = () => {
     ctx.putImageData(imageData, 0, 0);
 };
 
-const gaussianWeight = (x, y) => {
-    const SIGMA = 1.85089642
-    const stDevSq = Math.pow(SIGMA, 2)
-
-    const A = (1 / (2 * Math.PI * stDevSq))
-    const B = (x * x + y * y) / (2 * stDevSq)
-    
-    return A * Math.pow(Math.E, -B)
-}
-
-const sumUint8ClampedArrayByIndexGauss = (data, ...indices) => {
-    let r = 0;
-    let g = 0;
-    let b = 0;
-
-    let weightSum = 0;
-
-    for (let i = 0; i < indices.length; i++) {
-        const weight = gaussianWeight(indices[i].x, indices[i].y)
-        weightSum += weight
-        r += data[indices[i].pos + 0] * weight
-        g += data[indices[i].pos + 1] * weight
-        b += data[indices[i].pos + 2] * weight
-    }
-
-    r = Math.round(r / weightSum)
-    g = Math.round(g / weightSum)
-    b = Math.round(b / weightSum)
-
-    return new Uint8Array([r, g, b])
-}
 
 // https://en.wikipedia.org/wiki/Gaussian_blur
 const gaussian = () => {
-    original()
+    // the gaussian function
+    const gaussianWeight = (x, y) => {
+        const SIGMA = 1.85089642 // no real reason for this
+        const stDevSq = Math.pow(SIGMA, 2)
+    
+        const A = (1 / (2 * Math.PI * stDevSq))
+        const B = (x * x + y * y) / (2 * stDevSq)
+        
+        return A * Math.pow(Math.E, -B)
+    }
 
-    const RADIUS = 2;
+    const KERNEL_RADIUS = 2;
     
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
     
     const start = performance.now()
-    for (let x = RADIUS; x < 800-RADIUS; x++) { // skip edges for now
-        for (let y = RADIUS; y < 800-RADIUS; y++) { // skip edges for now
+    for (let x = KERNEL_RADIUS; x < canvas.width-KERNEL_RADIUS; x++) { // skip edges
+        for (let y = KERNEL_RADIUS; y < canvas.height-KERNEL_RADIUS; y++) { // skip edges
             
             const indices = []
-            for (let xx = -RADIUS; xx <= RADIUS; xx++) {
-                for (let yy = -RADIUS; yy <= RADIUS; yy++) {
+            // this ensures that the currently processed pixel is centered at position (0, 0)
+            // and the neighbors are also adjusted appropriately
+            for (let xx = -KERNEL_RADIUS; xx <= KERNEL_RADIUS; xx++) {
+                for (let yy = -KERNEL_RADIUS; yy <= KERNEL_RADIUS; yy++) {
                     indices.push(
                         {
                             pos: cartesianToFlat(x + xx, y + yy),
-                            x: xx,
-                            y: yy
+                            weight: gaussianWeight(xx, yy)
                         }
                     )
                 }    
             }
 
-            const [r, g, b] = sumUint8ClampedArrayByIndexGauss(
+            const [r, g, b] = findNewRGBValue(
                 data, 
                 ...indices
             )
@@ -153,11 +143,12 @@ const gaussian = () => {
     }
     const total = performance.now() - start;
 
-    console.log("Gaussian:", total, "ms")
+    console.log("GaussianBlur:", total, "ms")
     ctx.putImageData(imageData, 0, 0);
-
 };
 
 const original = () => {
-    ctx.drawImage(img, 0, 0, 3772, 3772, 0, 0, 800, 800)
+    const adjusted_canvas_height = (img.naturalHeight / img.naturalWidth) * CANVAS_WIDTH
+    canvas.height = adjusted_canvas_height
+    ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, 0, 0, CANVAS_WIDTH, adjusted_canvas_height)
 };
